@@ -104,7 +104,7 @@ func main() {
             return
         }
 
-        // 向SSO服务器发送请求以验证token
+        // 向SSO服务器发送请求以验证token		
         resp, err := client.R().
             SetHeader("Cookie", "sso_token="+ssoToken).
             SetHeader("Content-Type", "application/json").

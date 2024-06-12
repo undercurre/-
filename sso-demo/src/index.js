@@ -5,7 +5,8 @@ const cors = require("cors");
 
 const app = express();
 const port = 3000;
-const secret = "sso-secret";
+const accessTokenSecret = "sso-access-token-secret";
+const refreshTokenSecret = "sso-refresh-token-secret";
 
 app.use(express.json());
 app.use(cookieParser());
@@ -70,21 +71,27 @@ app.post("/refresh-token", (req, res) => {
   });
 });
 
-app.get("/verify", (req, res) => {
-  const token = req.cookies.sso_token;
-
-  console.log(req.cookies);
+// 验证token中间件
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ message: "Not authenticated" });
+    return res.sendStatus(401);
   }
 
-  jwt.verify(token, secret, (err, decoded) => {
+  jwt.verify(token, accessTokenSecret, (err, user) => {
     if (err) {
-      return res.status(401).json({ message: "Invalid token" });
+      return res.sendStatus(403);
     }
-    res.json({ username: decoded.username });
+
+    req.user = user;
+    next();
   });
+};
+
+app.get("/verify", authenticateToken, (req, res) => {
+  res.json({ username: req.user.username });
 });
 
 app.post("/logout", (req, res) => {
