@@ -2,16 +2,17 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const axios = require("axios");
-const { parseCookies } = require("./utils/index");
+const utils = require("./utils/index");
 
 const app = express();
 const port = 4000;
+const appid = "app1";
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "http://localhost:3001"],
     credentials: true,
   })
 );
@@ -21,34 +22,33 @@ app.post("/login", async (req, res) => {
     const response = await axios.post("http://localhost:3000/login", {
       username: req.body.username,
       password: req.body.password,
+      appid,
     });
 
-    const cookies = parseCookies(response.headers["set-cookie"]);
+    const cookies = utils.parseCookies(response.headers["set-cookie"][0]);
 
-    console.log(cookies);
+    res.cookie("sso_token", cookies.sso_token, {
+      httpOnly: true, // 防止客户端JavaScript访问Cookie
+      // secure: true, // 确保只能通过HTTPS连接传输Cookie
+      // sameSite: 'lax', // 帮助防止 CSRF 攻击。Strict 模式完全阻止跨站请求携带 Cookie，Lax 模式允许一些跨站请求（如 GET 请求）
+      domain: "127.0.0.1",
+      path: "/",
+    });
 
-    if (match) {
-      // 假设验证逻辑成功，设置一个简单的 sso_token Cookie
-      res.cookie("sso_token", cookies.sso_token, {
-        httpOnly: true,
-        domain: ".localhost",
-        path: "/",
-      });
-    }
-
-    res.json({ message: "Login App1" });
+    res.json({ message: `Login ${appid}` });
   } catch (error) {
+    console.log(error);
     res.status(401).json({ message: "Not authenticated" });
   }
 });
 
 app.post("/logout", async (req, res) => {
-  const response = await axios.post("http://localhost:3000/logout", {
-    username: req.body.username,
-    password: req.body.password,
+  await axios.post("http://localhost:3000/logout", {
+    appid,
   });
 
-  res.json({ message: "Logged out in App1" });
+  res.clearCookie("sso_token", { domain: "127.0.0.1" });
+  res.json({ message: `Logged out From ${appid}` });
 });
 
 app.get("/profile", async (req, res) => {
@@ -67,5 +67,5 @@ app.get("/profile", async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`App1 listening at http://localhost:${port}`);
+  console.log(`${appid} listening at http://localhost:${port}`);
 });

@@ -7,13 +7,10 @@ $(document).ready(function () {
     const password = $("#password").val();
 
     $.ajax({
-      url: "api/login",
+      url: "/api/login",
       type: "POST",
       contentType: "application/json",
       data: JSON.stringify({ username, password }),
-      xhrFields: {
-        withCredentials: true,
-      },
       success: function () {
         $("#login-form").hide();
         $("#profile-section").show();
@@ -44,6 +41,19 @@ $(document).ready(function () {
 
   // 注销逻辑
   $("#logoutButton").click(function () {
+    $.ajax({
+      url: "/api/logout",
+      type: "POST",
+      xhrFields: {
+        withCredentials: true,
+      },
+      success: function (data) {
+        alert("Logout success!");
+      },
+      error: function (xhr, status, error) {
+        alert("Logout failed: " + xhr.responseJSON.message);
+      },
+    });
     document.cookie = "sso_token=; Max-Age=0; path=/; domain=.local";
     $("#profile-section").hide();
     $("#login-form").show();
