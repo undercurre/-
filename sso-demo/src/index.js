@@ -55,8 +55,11 @@ app.post("/login", (req, res) => {
 
 // 刷新token接口
 app.post("/refresh-token", (req, res) => {
-  const { refresh_token } = req.cookies;
-
+  // 使用正则表达式从 Cookie 字符串中解析出 refresh_token
+  const cookieString = req.headers.cookie;
+  const refreshTokenMatch =
+    cookieString && cookieString.match(/refresh_token=([^;]+)/);
+  const refresh_token = refreshTokenMatch ? refreshTokenMatch[1] : null;
   if (!refresh_token) {
     return res.status(401).json({ message: "No refresh token provided" });
   }
@@ -98,7 +101,7 @@ app.post("/logout", (req, res) => {
   const { appid } = req.body;
   console.log("Logout From", appid);
   // 2.logout的时候返回clearCookie的
-  res.clearCookie("sso_token", { domain: "127.0.0.1" });
+  res.clearCookie("refresh_token", { domain: "127.0.0.1" });
   res.json({ message: "Center Logged out" });
 });
 

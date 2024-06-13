@@ -15,7 +15,7 @@ $(document).ready(function () {
         $("#login-form").hide();
         $("#profile-section").show();
         $("#profile").html("");
-        localStorage.setItem("accessToken", res.data.accessToken);
+        localStorage.setItem("accessToken", res.accessToken);
       },
       error: function (xhr, status, error) {
         alert("Login failed: " + xhr.responseJSON.message);
@@ -24,23 +24,9 @@ $(document).ready(function () {
   });
 
   // 获取用户信息
-  $("#getProfile").click(function () {
-    $.ajax({
-      url: "/api/profile",
-      type: "GET",
-      beforeSend: function (xhr) {
-        const accessToken = localStorage.getItem("access_token");
-        if (accessToken) {
-          xhr.setRequestHeader("Authorization", "Bearer " + accessToken);
-        }
-      },
-      success: function (data) {
-        $("#profile").html("User: " + data.user);
-      },
-      error: function (xhr, status, error) {
-        $("#profile").html("Not authenticated");
-      },
-    });
+  $("#getProfile").click(async function () {
+    const profile = await fetchProtectedResource("/api/profile", "GET");
+    $("#profile").html("User: " + profile.user);
   });
 
   // 注销逻辑
@@ -67,7 +53,7 @@ $(document).ready(function () {
   });
 
   // 刷新token
-  function refreshToken(refreshToken) {
+  function refreshAccessToken() {
     return new Promise((resolve, reject) => {
       $.ajax({
         url: "/api/refresh-token", // 替换成实际的刷新 Token 的接口地址
@@ -105,13 +91,8 @@ $(document).ready(function () {
         error: function (xhr, status, error) {
           if (xhr.status === 401) {
             // 如果返回 401 表示 AccessToken 失效
-            var refreshToken = localStorage.getItem("refreshToken");
-
-            refreshAccessToken(refreshToken)
+            refreshAccessToken()
               .then(function (newAccessToken) {
-                // 刷新 Token 成功，更新 localStorage 中的 AccessToken
-                localStorage.setItem("accessToken", newAccessToken);
-
                 // 重新发起原始请求或其他操作
                 fetchProtectedResource(url, method)
                   .then(resolve) // 再次发起请求成功时，将响应数据返回

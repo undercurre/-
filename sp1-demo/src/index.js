@@ -51,13 +51,17 @@ app.post("/logout", async (req, res) => {
   res.json({ message: `Logged out From ${appid}` });
 });
 
-app.post("refresh_token", async (req, res) => {
+app.post("/refresh-token", async (req, res) => {
   try {
-    const response = await axios.post("http://localhost:3000/refresh-token", {
-      headers: {
-        Cookie: req.headers.cookie, // 将请求中的 Cookie 带到转发的请求中
-      },
-    });
+    const response = await axios.post(
+      "http://localhost:3000/refresh-token",
+      null,
+      {
+        headers: {
+          Cookie: req.headers.cookie, // 将请求中的 Cookie 带到转发的请求中
+        },
+      }
+    );
 
     res.json(response.data);
   } catch (error) {
@@ -69,7 +73,7 @@ app.get("/profile", async (req, res) => {
   try {
     const response = await axios.get("http://localhost:3000/verify", {
       headers: {
-        Authorization: `refresh_token=${req.cookies.refresh_token}`,
+        Authorization: req.headers["authorization"],
       },
     });
 

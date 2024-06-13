@@ -1,5 +1,5 @@
 // 将 Cookie 字符串解析为对象
-function parseCookies(cookieString) {
+function        parseCookies(cookieString) {
   return cookieString.split(";").reduce((cookies, cookie) => {
     const parts = cookie.split("=");
     const key = parts[0].trim();
