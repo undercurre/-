@@ -44,7 +44,8 @@ const App = () => {
   const handleLogout = async () => {
     try {
       await axios.post("/api/logout", {}, { withCredentials: true });
-      setProfile(null);
+      setProfile("Not authenticated");
+      localStorage.removeItem("accessToken");
       alert("Logged out");
     } catch (error) {
       alert("Logout failed");
