@@ -12,10 +12,30 @@ func main() {
 
     // 允许跨域请求
     r.Use(func(c *gin.Context) {
-        c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-        c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-        c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        // 获取请求的来源
+		origin := c.Request.Header.Get("Origin")
+
+		// 允许的来源列表
+		allowedOrigins := []string{
+			"http://localhost:3000",
+			"http://127.0.0.1:5001",
+		}
+
+        // 检查请求的来源是否在允许的列表中
+		allowed := false
+		for _, o := range allowedOrigins {
+			if origin == o {
+				allowed = true
+				break
+			}
+		}
+
+        if allowed {
+            c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+            c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+            c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+            c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        }
         if c.Request.Method == "OPTIONS" {
             c.AbortWithStatus(http.StatusNoContent)
             return
@@ -48,6 +68,15 @@ func main() {
 			return
 		}
 
+        
+        // 从响应体中获取数据
+        result := resp.Result().(*map[string]interface{})
+        // 构建返回的JSON数据
+        responseData := gin.H{"message": "app3 Login Success"}
+        for k, v := range *result {
+            responseData[k] = v
+        }
+
 		// 从响应头中获取Cookie
 		cookies := resp.Cookies()
 
@@ -56,22 +85,22 @@ func main() {
 			http.SetCookie(c.Writer, &http.Cookie{
 				Name:     cookie.Name,
 				Value:    cookie.Value,
-				Path:     cookie.Path,
-				Domain:   cookie.Domain,
+				Path:     "/",
+				Domain:   "127.0.0.1",
 				Expires:  cookie.Expires,
 				Secure:   cookie.Secure,
 				HttpOnly: cookie.HttpOnly,
 			})
 		}
 
-        c.JSON(http.StatusOK, gin.H{"message": "app3 Login Success"})
+        c.JSON(http.StatusOK, responseData)
 	})
 
 	r.POST("/logout", func(c * gin.Context) {
 		client := resty.New()
 
-        // 从cookie中获取sso_token
-        ssoToken, err := c.Cookie("sso_token")
+        // 从cookie中获取refresh_token
+        refreshToken, err := c.Cookie("refresh_token")
         if err != nil {
             c.JSON(http.StatusUnauthorized, gin.H{"message": "Not authenticated"})
             return
@@ -79,7 +108,7 @@ func main() {
 
         // 向SSO服务器发送请求以验证token
         resp, err := client.R().
-            SetHeader("Cookie", "sso_token="+ssoToken).
+            SetHeader("Cookie", "refresh_token="+refreshToken).
             SetHeader("Content-Type", "application/json").
 			SetBody(map[string]string{"appid": "app3"}).
             SetResult(map[string]interface{}{}).
@@ -90,23 +119,49 @@ func main() {
             return
         }
 
-		c.SetCookie("sso_token", "", -1, "/", "127.0.0.1", false, true)
+		c.SetCookie("refresh_token", "", -1, "/", "127.0.0.1", false, true)
 		c.JSON(http.StatusOK, gin.H{"message": "app3 Logged out"})
 	})
 
-    r.GET("/note", func(c *gin.Context) {
-        client := resty.New()
+    r.POST("/refresh-token", func(c * gin.Context) {
+		client := resty.New()
 
-        // 从cookie中获取sso_token
-        ssoToken, err := c.Cookie("sso_token")
+        // 从cookie中获取refresh_token
+        refreshToken, err := c.Cookie("refresh_token")
         if err != nil {
             c.JSON(http.StatusUnauthorized, gin.H{"message": "Not authenticated"})
             return
         }
 
+        // 向SSO服务器发送请求以验证token
+        resp, err := client.R().
+            SetHeader("Cookie", "refresh_token="+refreshToken).
+            SetHeader("Content-Type", "application/json").
+            SetResult(map[string]interface{}{}).
+            Post("http://localhost:3000/refresh-token")
+
+        if err != nil || resp.StatusCode() != http.StatusOK {
+            c.JSON(http.StatusUnauthorized, gin.H{"message": "Not authenticated"})
+            return
+        }
+
+        // 从响应体中获取数据
+        result := resp.Result().(*map[string]interface{})
+        // 构建返回的JSON数据
+        responseData := gin.H{"message": "app3 Login Success"}
+        for k, v := range *result {
+            responseData[k] = v
+        }
+
+        c.JSON(http.StatusOK, responseData)
+	})
+
+    r.GET("/note", func(c *gin.Context) {
+        client := resty.New()
+
         // 向SSO服务器发送请求以验证token		
         resp, err := client.R().
-            SetHeader("Cookie", "sso_token="+ssoToken).
+            SetHeader("Authorization", c.GetHeader("Authorization")).
             SetHeader("Content-Type", "application/json").
             SetResult(map[string]interface{}{}).
             Get("http://localhost:3000/verify")

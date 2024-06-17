@@ -1,6 +1,16 @@
 import $ from "jquery";
 
 $(document).ready(function () {
+  // 页面加载时检查 localStorage 中的 accessToken
+  if (localStorage.getItem("accessToken")) {
+    $("#login-form").hide();
+    $("#profile-section").show();
+    $("#profile").html("");
+  } else {
+    $("#login-form").show();
+    $("#profile-section").hide();
+  }
+
   // 登录逻辑
   $("#loginButton").click(function () {
     const username = $("#username").val();
@@ -68,6 +78,11 @@ $(document).ready(function () {
           resolve(response.accessToken); // 成功时返回新的 Access Token
         },
         error: function (xhr, status, error) {
+          document.cookie = "refresh_token=; Max-Age=0; path=/; domain=.local";
+          $("#profile-section").hide();
+          $("#login-form").show();
+          $("#username").val("");
+          $("#password").val("");
           reject(error); // 失败时处理错误
         },
       });

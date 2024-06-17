@@ -30,7 +30,7 @@ export default {
   methods: {
     async login() {
       try {
-        await axios.post(
+        const res = await axios.post(
           "/api/login",
           {
             username: this.username,
@@ -41,6 +41,8 @@ export default {
           }
         );
         this.loggedIn = true;
+        console.log(res);
+        localStorage.setItem("accessToken", res.data.accessToken);
       } catch (error) {
         alert("Login failed: " + error.response.data.message);
       }
@@ -48,11 +50,18 @@ export default {
     async getDashboard() {
       try {
         const response = await axios.get("/api/dashboard", {
-          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
         });
         this.message = `User: ${response.data.user}`;
       } catch (error) {
-        this.message = "Not authenticated";
+        if (error.response && error.response.status === 401) {
+          this.message = "";
+          this.refreshToken(this.getDashboard);
+        } else {
+          this.message = "Not authenticated";
+        }
       }
     },
     async logout() {
@@ -68,10 +77,34 @@ export default {
         this.username = "";
         this.password = "";
         this.message = "";
+        localStorage.removeItem("accessToken");
       } catch (error) {
         console.error("Logout failed", error);
       }
     },
+    async refreshToken(callback) {
+      try {
+        const response = await axios.post(
+          "/api/refresh-token",
+          {},
+          {
+            withCredentials: true,
+          }
+        );
+        localStorage.setItem("accessToken", response.data.accessToken);
+        console.log("Token refreshed successfully");
+        callback();
+      } catch (error) {
+        console.error("Failed to refresh token", error);
+        this.loggedIn = false;
+        localStorage.removeItem("accessToken");
+      }
+    },
+  },
+  async mounted() {
+    const token = localStorage.getItem("accessToken");
+
+    this.loggedIn = true;
   },
 };
 </script>

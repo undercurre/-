@@ -23,12 +23,12 @@ app.use(
 
 // 生成Access Token
 const generateAccessToken = (username) => {
-  return jwt.sign({ username }, accessTokenSecret, { expiresIn: "15m" });
+  return jwt.sign({ username }, accessTokenSecret, { expiresIn: "30s" });
 };
 
 // 生成Refresh Token
 const generateRefreshToken = (username) => {
-  return jwt.sign({ username }, refreshTokenSecret, { expiresIn: "1h" });
+  return jwt.sign({ username }, refreshTokenSecret, { expiresIn: "2m" });
 };
 
 app.post("/login", (req, res) => {
@@ -57,6 +57,7 @@ app.post("/login", (req, res) => {
 app.post("/refresh-token", (req, res) => {
   // 使用正则表达式从 Cookie 字符串中解析出 refresh_token
   const cookieString = req.headers.cookie;
+
   const refreshTokenMatch =
     cookieString && cookieString.match(/refresh_token=([^;]+)/);
   const refresh_token = refreshTokenMatch ? refreshTokenMatch[1] : null;
