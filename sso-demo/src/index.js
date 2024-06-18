@@ -7,6 +7,8 @@ const app = express();
 const port = 3000;
 const accessTokenSecret = "sso-access-token-secret";
 const refreshTokenSecret = "sso-refresh-token-secret";
+const wechatAppID = "wx7283eac281febaaf";
+const wechatAppSecret = "24c6cff0c5ffec4dd1e0eacb33c46aa6";
 
 app.use(express.json());
 app.use(cookieParser());
@@ -30,6 +32,33 @@ const generateAccessToken = (username) => {
 const generateRefreshToken = (username) => {
   return jwt.sign({ username }, refreshTokenSecret, { expiresIn: "2m" });
 };
+
+app.post("/wechat-login", async (req, res) => {
+  const { code } = req.body;
+
+  try {
+    // 通过 code 获取微信 access token 和 openid
+    const response = await axios.get(
+      `https://api.weixin.qq.com/sns/jscode2session?appid=${wechatAppID}&secret=${wechatAppSecret}&js_code=${code}&grant_type=authorization_code`
+    );
+    const { openid, session_key } = response.data;
+
+    // 使用 openid 作为用户名生成 SSO 的 access token 和 refresh token
+    const accessToken = generateAccessToken(openid);
+    const refreshToken = generateRefreshToken(openid);
+
+    // 设置 refresh token 到 cookie 中
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      path: "/refresh-token",
+    });
+
+    res.json({ accessToken });
+  } catch (error) {
+    console.error("Error fetching WeChat access token:", error);
+    res.status(500).json({ message: "WeChat login failed" });
+  }
+});
 
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
