@@ -2,9 +2,13 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const fs = require("fs");
+const path = require("path");
+const axios = require("axios");
 
 const app = express();
 const port = 3000;
+const usersFilePath = path.join(__dirname, "../../fake-database/user.json");
 const accessTokenSecret = "sso-access-token-secret";
 const refreshTokenSecret = "sso-refresh-token-secret";
 const wechatAppID = "wx7283eac281febaaf";
@@ -22,6 +26,17 @@ app.use(
     credentials: true,
   })
 );
+
+// 读取用户数据
+const readUsersFromFile = () => {
+  const data = fs.readFileSync(usersFilePath);
+  return JSON.parse(data);
+};
+
+// 写入用户数据
+const writeUsersToFile = (users) => {
+  fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
+};
 
 // 生成Access Token
 const generateAccessToken = (username) => {
@@ -43,6 +58,26 @@ app.post("/wechat-login", async (req, res) => {
     );
     const { openid, session_key } = response.data;
 
+    let users = readUsersFromFile();
+    let user = users.find((u) => u.openid === openid);
+
+    if (!user) {
+      user = {
+        id: openid,
+        username: "微信用户" + openid.slice(0, -7),
+        password: 123456,
+        openid,
+        session_key,
+        avatar:
+          "https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0",
+      };
+      users.push(user);
+      writeUsersToFile(users);
+    } else {
+      user.session_key = session_key;
+      writeUsersToFile(users);
+    }
+
     // 使用 openid 作为用户名生成 SSO 的 access token 和 refresh token
     const accessToken = generateAccessToken(openid);
     const refreshToken = generateRefreshToken(openid);
@@ -53,7 +88,7 @@ app.post("/wechat-login", async (req, res) => {
       path: "/refresh-token",
     });
 
-    res.json({ accessToken });
+    res.json({ accessToken, userId: user.id });
   } catch (error) {
     console.error("Error fetching WeChat access token:", error);
     res.status(500).json({ message: "WeChat login failed" });
