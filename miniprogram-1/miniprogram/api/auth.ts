@@ -1,40 +1,57 @@
-import { request } from "../utils/request";
+import request from "../utils/request";
 
 const login = () => {
   return new Promise((resolve, reject) => {
     wx.login({
       success: async res => {
-        // 发送 res.code 到后台换取 openId, sessionKey, unionId
         if (res.code) {
-          const loginResponse = await request<ApiService.WechatLoginResult>({
-            url: 'http://127.0.0.1:4000/wechat-login',
-            method: 'POST',
+          const loginResponse = await request.post('/login', {
             data: {
-              code: res.code
-            },
+              code: res.code,
+            }
           });
-          const cookies = loginResponse.cookies
-          const cookieString = cookies[0];
+          const cookies = loginResponse
+          console.log(loginResponse)
 
-          // 使用正则表达式从字符串中提取 refresh_token
-          const refreshTokenMatch = cookieString.match(/refresh_token=([^;]+)/);
-          const refreshToken = refreshTokenMatch ? refreshTokenMatch[1] : null;
+          // // 使用正则表达式从字符串中提取 refresh_token
+          // const refreshTokenMatch = cookieString.match(/refresh_token=([^;]+)/);
+          // const refreshToken = refreshTokenMatch ? refreshTokenMatch[1] : null;
 
-          wx.setStorageSync('refreshToken', refreshToken);
-          if (loginResponse.data.accessToken) {
-            // 存储accessToken
-            wx.setStorageSync('accessToken', loginResponse.data.accessToken);
-            wx.setStorageSync('userId', loginResponse.data.userId);
-          }
-
-          resolve(res);
+          // wx.setStorageSync('refreshToken', refreshToken);
+          // if (loginResponse.data.accessToken) {
+          //   // 存储accessToken
+          //   wx.setStorageSync('accessToken', loginResponse.data.accessToken);
+          //   wx.setStorageSync('userId', loginResponse.data.userId);
+          // }
         }
+        resolve(res);
       },
       fail: (err) => {
         reject(err);
       },
-    });
-  });
+    })
+  })
 }
 
-export { login };
+// 刷新 token 的函数
+const refreshToken = async () => {
+  try {
+    const refresh_token = wx.getStorageSync('refresh_token');
+    const response = await request.post('/refresh-token', {
+      headers: {
+        'Cookie': refresh_token
+      }
+    });
+    const newAccessToken = response.data.accessToken;
+    wx.setStorageSync('access_token', newAccessToken);
+    return newAccessToken;
+  } catch (error) {
+    // 刷新 token 失败，清除登录态
+    wx.removeStorageSync('access_token');
+    wx.removeStorageSync('refresh_token');
+    wx.redirectTo({ url: '/pages/login/login' });
+    return null;
+  }
+};
+
+export { refreshToken, login }

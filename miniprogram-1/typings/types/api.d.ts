@@ -5,7 +5,7 @@ declare namespace ApiService {
     userId: string;
   }
 
-  interface RequestOptions {
+  type RequestOptions = {
     url: string;
     method: 'GET' | 'POST' | 'PUT' | 'DELETE';
     data?: any;

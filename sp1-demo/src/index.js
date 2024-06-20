@@ -40,13 +40,24 @@ app.get("/users", (req, res) => {
 });
 
 // 获取单个用户
-app.get("/users/:id", (req, res) => {
-  const users = readUsersFromFile();
-  const user = users.find((u) => u.id === parseInt(req.params.id));
-  if (user) {
-    res.json(user);
-  } else {
-    res.status(404).json({ message: "User not found" });
+app.get("/users/:id", async (req, res) => {
+  try {
+    await axios.get("http://localhost:3000/verify", {
+      headers: {
+        Authorization: req.headers["authorization"],
+      },
+    });
+
+    const users = readUsersFromFile();
+    console.log(req.params);
+    const user = users.find((u) => u.id === req.params.id);
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res.status(401).json({ message: "Not authenticated" });
   }
 });
 
