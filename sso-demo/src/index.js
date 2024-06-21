@@ -72,6 +72,8 @@ app.post("/wechat-login", async (req, res) => {
         session_key,
         avatar:
           "https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0",
+        createTime: Date.now(),
+        updateTime: Date.now(),
       };
       users.push(user);
       writeUsersToFile(users);

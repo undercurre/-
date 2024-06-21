@@ -35,15 +35,15 @@ request.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      const refresh_token = wx.getStorageSync('refresh_token');
-      if (refresh_token) {
+    if (error.response.status === 401) {
+      const refresh_token = wx.getStorageSync('refreshToken');
+      if (refresh_token && error.config.url !== 'http://localhost:4000/refresh-token') {
         const newAccessToken = await refreshToken();
         if (newAccessToken) {
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return request(originalRequest);
         }
+        return request(originalRequest);
       } else {
         // 重定向到登录
       }

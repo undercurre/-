@@ -69,7 +69,12 @@ app.post("/users", async (req, res) => {
       },
     });
     const users = readUsersFromFile();
-    const newUser = { id: Date.now(), ...req.body };
+    const newUser = {
+      id: Date.now(),
+      ...req.body,
+      createTime: Date.now(),
+      updateTime: Date.now(),
+    };
     users.push(newUser);
     writeUsersToFile(users);
     res.status(201).json(newUser);
@@ -81,9 +86,14 @@ app.post("/users", async (req, res) => {
 // 更新用户
 app.put("/users/:id", (req, res) => {
   const users = readUsersFromFile();
-  const userIndex = users.findIndex((u) => u.id === parseInt(req.params.id));
+  console.log("更新用户信息", req.params);
+  const userIndex = users.findIndex((u) => u.id === req.params.id);
   if (userIndex !== -1) {
-    users[userIndex] = { ...users[userIndex], ...req.body };
+    users[userIndex] = {
+      ...users[userIndex],
+      ...req.body,
+      updateTime: Date.now(),
+    };
     writeUsersToFile(users);
     res.json(users[userIndex]);
   } else {
@@ -163,6 +173,7 @@ app.post("/logout", async (req, res) => {
 });
 
 app.post("/refresh-token", async (req, res) => {
+  console.log("刷新token", req.headers);
   try {
     const response = await axios.post(
       "http://localhost:3000/refresh-token",

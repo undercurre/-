@@ -1,15 +1,17 @@
 import request from "../utils/request"
 
-const getUserInfo = (id) => {
+const getUserInfo = () => {
+  const userId = wx.getStorageSync('userId');
   return request({
-    url: `http://127.0.0.1:4000/users/${id}`,
+    url: `http://127.0.0.1:4000/users/${userId}`,
     method: 'GET'
   })
 }
 
-const uptUserInfo = (id, userData) => {
+const uptUserInfo = (userData) => {
+  const userId = wx.getStorageSync('userId');
   return request({
-    url: `http://127.0.0.1:4000/users/${id}`,
+    url: `http://127.0.0.1:4000/users/${userId}`,
     method: 'PUT',
     data: {
       ...userData,

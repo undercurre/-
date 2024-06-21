@@ -10,10 +10,8 @@ const login = () => {
           const loginResponse = await request.post('/wechat-login', {
             code: res.code
           });
-          const cookies = loginResponse.headers['Set-Cookie'];
-          const cookieString = cookies[0];
+          const cookieString = loginResponse.headers['Set-Cookie'];
           const cookiesObj = parseCookies(cookieString);
-          console.log(cookiesObj)
           const refreshToken = cookiesObj.refresh_token ? cookiesObj.refresh_token : null;
           wx.setStorageSync('refreshToken', refreshToken);
           if (loginResponse.data.accessToken) {
@@ -33,15 +31,16 @@ const login = () => {
 
 // 刷新 token 的函数
 const refreshToken = async () => {
+  console.log('刷新token')
   try {
-    const refresh_token = wx.getStorageSync('refresh_token');
+    const refresh_token = wx.getStorageSync('refreshToken');
     const response = await request.post('/refresh-token', {
       headers: {
         'Cookie': refresh_token
       }
     });
     const newAccessToken = response.data.accessToken;
-    wx.setStorageSync('access_token', newAccessToken);
+    wx.setStorageSync('accessToken', newAccessToken);
     return newAccessToken;
   } catch (error) {
     // 刷新 token 失败，清除登录态

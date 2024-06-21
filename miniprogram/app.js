@@ -13,7 +13,7 @@ App({
     }
 
     // 如果登陆过，马上请求该用户的信息
-    const userInfoRes = await getUserInfo(userId);
+    const userInfoRes = await getUserInfo();
     wx.setStorageSync('userInfo', userInfoRes.data);
   }
 })

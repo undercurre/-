@@ -5,14 +5,17 @@
     "password": "123456",
     "openid": null,
     "session_key": null,
-    "avatar": "https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0"
+    "avatar": "https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0",
+    "createTime": null,
+    "updateTime": null
   },
   {
     "id": "oBnJe5Qx1_jWL7AjjwrXOnvvmGS0",
-    "username": "微信用户oBnJe5Qx1_jWL7AjjwrXO",
+    "username": "懒猪不回顾",
     "password": 123456,
     "openid": "oBnJe5Qx1_jWL7AjjwrXOnvvmGS0",
-    "session_key": "0/PBzmCrAt/ky8IFD28YVQ==",
-    "avatar": "https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0"
+    "session_key": "1hXmJXZQ6t5Hw+QNg23s2g==",
+    "avatar": "http://tmp/2gxWnESK2DaB4f5ee180ee25d798a8a4b620733a0d00.jpg",
+    "updateTime": 1719008414570
   }
 ]
