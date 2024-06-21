@@ -1,28 +1,26 @@
 import request from "../utils/request";
+import { parseCookies } from '../utils/util';
 
 const login = () => {
   return new Promise((resolve, reject) => {
     wx.login({
       success: async res => {
+        console.log(res.code)
         if (res.code) {
-          const loginResponse = await request.post('/login', {
-            data: {
-              code: res.code,
-            }
+          const loginResponse = await request.post('/wechat-login', {
+            code: res.code
           });
-          const cookies = loginResponse
-          console.log(loginResponse)
-
-          // // 使用正则表达式从字符串中提取 refresh_token
-          // const refreshTokenMatch = cookieString.match(/refresh_token=([^;]+)/);
-          // const refreshToken = refreshTokenMatch ? refreshTokenMatch[1] : null;
-
-          // wx.setStorageSync('refreshToken', refreshToken);
-          // if (loginResponse.data.accessToken) {
-          //   // 存储accessToken
-          //   wx.setStorageSync('accessToken', loginResponse.data.accessToken);
-          //   wx.setStorageSync('userId', loginResponse.data.userId);
-          // }
+          const cookies = loginResponse.headers['Set-Cookie'];
+          const cookieString = cookies[0];
+          const cookiesObj = parseCookies(cookieString);
+          console.log(cookiesObj)
+          const refreshToken = cookiesObj.refresh_token ? cookiesObj.refresh_token : null;
+          wx.setStorageSync('refreshToken', refreshToken);
+          if (loginResponse.data.accessToken) {
+            // 存储accessToken
+            wx.setStorageSync('accessToken', loginResponse.data.accessToken);
+            wx.setStorageSync('userId', loginResponse.data.userId);
+          }
         }
         resolve(res);
       },

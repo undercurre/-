@@ -58,6 +58,8 @@ app.post("/wechat-login", async (req, res) => {
     );
     const { openid, session_key } = response.data;
 
+    console.log(`微信code${code}返回Log：`, response.data);
+
     let users = readUsersFromFile();
     let user = users.find((u) => u.openid === openid);
 

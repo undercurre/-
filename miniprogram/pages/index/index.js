@@ -23,8 +23,12 @@ Component({
       // 点击头像
     },
     onChooseAvatar(e) {
-      const { avatarUrl } = e.detail
-      const { nickName } = this.data.userInfo
+      const {
+        avatarUrl
+      } = e.detail
+      const {
+        nickName
+      } = this.data.userInfo
       this.setData({
         "userInfo.avatarUrl": avatarUrl,
         hasUserInfo: nickName && avatarUrl && avatarUrl !== defaultAvatarUrl,
@@ -32,7 +36,9 @@ Component({
     },
     onInputChange(e) {
       const nickName = e.detail.value
-      const { avatarUrl } = this.data.userInfo
+      const {
+        avatarUrl
+      } = this.data.userInfo
       this.setData({
         "userInfo.nickName": nickName,
         hasUserInfo: nickName && avatarUrl && avatarUrl !== defaultAvatarUrl,
@@ -52,4 +58,18 @@ Component({
       })
     },
   },
+
+  lifetimes: {
+    attached(options) {
+      // 读取缓存中的用户数据
+      const userInfoInStorage = wx.getStorageSync('userInfo');
+      console.log('用户数据', userInfoInStorage.username)
+
+      this.setData({
+        'userInfo.avatarUrl': userInfoInStorage.avatar,
+        'userInfo.nickName': userInfoInStorage.username,
+        role: '普通用户'
+      })
+    },
+  }
 })

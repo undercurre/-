@@ -13,11 +13,12 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   (config) => {
-    const access_token = wx.getStorageSync('access_token');
+    const access_token = wx.getStorageSync('accessToken');
     const handleConfig = { ...config };
-    handleConfig.data = handleConfig.data || {};
-    if (handleConfig.headers) {
-      // 设置 access_token
+    if (!handleConfig.headers) {
+      handleConfig.headers = {};
+    }
+    if (!handleConfig.headers.Authorization) {
       handleConfig.headers.Authorization = `Bearer ${access_token}` || '';
     }
     return handleConfig;

@@ -47,9 +47,8 @@ app.get("/users/:id", async (req, res) => {
         Authorization: req.headers["authorization"],
       },
     });
-
+    console.log("获取用户Info", req.params.id);
     const users = readUsersFromFile();
-    console.log(req.params);
     const user = users.find((u) => u.id === req.params.id);
     if (user) {
       res.json(user);
@@ -125,15 +124,17 @@ app.post("/login", async (req, res) => {
 
     res.json({ message: `Login ${appid}`, ...response.data });
   } catch (error) {
-    console.log(error);
     res.status(401).json({ message: "Not authenticated" });
   }
 });
 
 app.post("/wechat-login", async (req, res) => {
   try {
+    const { code } = req.body;
+    console.log("wechat", code);
+
     const response = await axios.post("http://localhost:3000/wechat-login", {
-      ...req.body,
+      code,
     });
 
     const cookies = utils.parseCookies(response.headers["set-cookie"][0]);

@@ -7,7 +7,8 @@ App({
   async onLaunch() {
     // 通过判断是否存有userIdz证明是否登录过
     const userId = wx.getStorageSync('userId');
-    if (!userId) {
+    const refresh_token = wx.getStorageSync('refreshToken');
+    if (!userId || !refresh_token) {
       await login();
     }
 
