@@ -61,13 +61,12 @@ Component({
       })
     },
     saveSetting() {
-      refreshToken()
-      // uptUserInfo({
-      //   username: this.data.userInfo.nickName,
-      //   avatar: this.data.userInfo.avatarUrl
-      // }).then(() => {
-      //   getUserInfo()
-      // });
+      uptUserInfo({
+        username: this.data.userInfo.nickName,
+        avatar: this.data.userInfo.avatarUrl
+      }).then(() => {
+        getUserInfo()
+      });
     }
   },
 

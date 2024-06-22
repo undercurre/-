@@ -1,6 +1,8 @@
 import axios from 'axios';
 import wxAdapter from 'axios-miniprogram-adapter';
-import { refreshToken } from '../api/auth';
+import {
+  refreshToken
+} from '../api/auth';
 
 axios.defaults.adapter = wxAdapter;
 // 创建 axios 实例
@@ -14,7 +16,9 @@ const request = axios.create({
 request.interceptors.request.use(
   (config) => {
     const access_token = wx.getStorageSync('accessToken');
-    const handleConfig = { ...config };
+    const handleConfig = {
+      ...config
+    };
     if (!handleConfig.headers) {
       handleConfig.headers = {};
     }
@@ -39,12 +43,13 @@ request.interceptors.response.use(
       const refresh_token = wx.getStorageSync('refreshToken');
       console.log(error.config.url)
       if (refresh_token && error.config.url !== 'http://localhost:4000/refresh-token') {
-        // const newAccessToken = await refreshToken();
-        // if (newAccessToken) {
-        //   originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        //   return request(originalRequest);
-        // }
-        // return request(originalRequest);
+        const newAccessToken = await refreshToken();
+        console.log(newAccessToken)
+        if (newAccessToken) {
+          console.log('重新请求')
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return request(originalRequest);
+        }
       } else {
         // 重定向到登录
       }
