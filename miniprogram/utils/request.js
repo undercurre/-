@@ -37,13 +37,14 @@ request.interceptors.response.use(
     const originalRequest = error.config;
     if (error.response.status === 401) {
       const refresh_token = wx.getStorageSync('refreshToken');
+      console.log(error.config.url)
       if (refresh_token && error.config.url !== 'http://localhost:4000/refresh-token') {
-        const newAccessToken = await refreshToken();
-        if (newAccessToken) {
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return request(originalRequest);
-        }
-        return request(originalRequest);
+        // const newAccessToken = await refreshToken();
+        // if (newAccessToken) {
+        //   originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        //   return request(originalRequest);
+        // }
+        // return request(originalRequest);
       } else {
         // 重定向到登录
       }

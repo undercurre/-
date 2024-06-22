@@ -34,7 +34,7 @@ const refreshToken = async () => {
   console.log('刷新token')
   try {
     const refresh_token = wx.getStorageSync('refreshToken');
-    const response = await request.post('/refresh-token', {
+    const response = await request.post('/refresh-token', null, {
       headers: {
         'Cookie': refresh_token
       }

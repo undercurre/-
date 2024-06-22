@@ -1,5 +1,6 @@
 // index.ts
 
+const { refreshToken } = require("../../api/auth");
 const {
   uptUserInfo,
   getUserInfo
@@ -60,12 +61,13 @@ Component({
       })
     },
     saveSetting() {
-      uptUserInfo({
-        username: this.data.userInfo.nickName,
-        avatar: this.data.userInfo.avatarUrl
-      }).then(() => {
-        getUserInfo()
-      });
+      refreshToken()
+      // uptUserInfo({
+      //   username: this.data.userInfo.nickName,
+      //   avatar: this.data.userInfo.avatarUrl
+      // }).then(() => {
+      //   getUserInfo()
+      // });
     }
   },
 
