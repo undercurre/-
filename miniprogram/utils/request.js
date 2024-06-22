@@ -3,11 +3,12 @@ import wxAdapter from 'axios-miniprogram-adapter';
 import {
   refreshToken
 } from '../api/auth';
+import baseUrl from "../config" 
 
 axios.defaults.adapter = wxAdapter;
 // 创建 axios 实例
 const request = axios.create({
-  baseURL: 'http://localhost:4000', // 所有的请求地址前缀部分
+  baseURL: baseUrl, // 所有的请求地址前缀部分
   timeout: 60000, // 请求超时时间毫秒
   withCredentials: true, // 异步请求携带cookie
 });
@@ -42,7 +43,9 @@ request.interceptors.response.use(
     if (error.response.status === 401) {
       const refresh_token = wx.getStorageSync('refreshToken');
       console.log(error.config.url)
-      if (refresh_token && error.config.url !== 'http://localhost:4000/refresh-token') {
+      const regex = /refresh-token/;
+
+      if (refresh_token && !regex.test(error.config.url)) {
         const newAccessToken = await refreshToken();
         console.log(newAccessToken)
         if (newAccessToken) {
